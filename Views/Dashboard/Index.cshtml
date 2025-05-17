@@ -1,0 +1,205 @@
+﻿@{
+    ViewData["isDashboard"] = true;
+}
+
+@*Summary Widgets*@
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="d-flex flex-row widget summary income">
+            <div class="d-flex flex-column justify-content-center p-5">
+                <i class="fa-solid fa-indian-rupee-sign fa-2xl"></i>
+            </div>
+            <div class="d-flex flex-column m-auto py-3">
+                <span class="lead">Total Income</span>
+                <h1 class="display-6 fw-bold">@ViewBag.TotalIncome</h1>  
+            </div>
+        </div>
+	</div>
+    <div class="col-md-4">
+        <div class="d-flex flex-row widget summary expense">
+            <div class="d-flex flex-column justify-content-center p-5">
+                <i class="fa-solid fa-indian-rupee-sign fa-2xl"></i>
+            </div>
+            <div class="d-flex flex-column m-auto py-3">
+                <span class="lead">Total Expense</span>
+                <h1 class="display-6 fw-bold">@ViewBag.TotalExpense</h1>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="d-flex flex-row widget summary balance">
+            <div class="d-flex flex-column justify-content-center p-5">
+                <i class="fa-solid fa-indian-rupee-sign fa-2xl"></i>
+            </div>
+            <div class="d-flex flex-column m-auto py-3">
+                <span class="lead">Balance</span>
+                <h1 class="display-6 fw-bold">@ViewBag.Balance</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+@{
+    var paletteColors = new string[] {
+        "#0000FF", "#CDDE1F", "#FEC200", "#CA765A", "#2485FA", "#F57D7D", "#C152D2", "#8854D9", "#3D4EB8", "#00BCD7",
+        "#FF5733", "#28B463", "#AF7AC5", "#2980B9", "#E67E22", "#D35400", "#1ABC9C", "#E74C3C", "#8E44AD", "#5DADE2",
+        "#16A085", "#F39C12", "#2ECC71", "#9B59B6", "#F1C40F", "#E84393", "#2C3E50", "#E74C3C", "#3498DB", "#7D3C98",
+        "#D81B60", "#1E88E5", "#43A047", "#FB8C00", "#8E24AA", "#F06292", "#3949AB", "#00ACC1", "#7CB342", "#F44336"
+    };
+}
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="widget chart">
+            <div class="p-4">
+                <h5 class="fw-bold">Expense By Category</h5>
+            </div>
+            <div style="margin-left: 100px; display: flex; align-items: flex-start;">
+                <!-- Doughnut Chart -->
+                <ejs-accumulationchart id="doughnutchart" enableSmartLabels>
+                    <e-accumulation-series-collection>
+                        <e-accumulation-series dataSource="@ViewBag.DoughnutChartData"
+                                               xName="categorywithAmount" yName="amount"
+                                               innerRadius="50%" legendShape="Circle"
+                                               palettes="@paletteColors">
+                            <e-accumulationseries-datalabel name="categoryTitle" visible="true" position="Outside">
+                                <e-font fontWeight="500" size="13px"></e-font>
+                                <e-connectorstyle length="10px" type="Curve"></e-connectorstyle>
+                            </e-accumulationseries-datalabel>
+                        </e-accumulation-series>
+                    </e-accumulation-series-collection>
+                    <e-accumulationchart-legendsettings position="Right" toggleVisibility="false" width="60px" maximumLabelWidth="800">
+                        <e-legendsettings-textstyle color="#000" fontWeight="300" size="14px"></e-legendsettings-textstyle>
+                    </e-accumulationchart-legendsettings>
+                </ejs-accumulationchart>
+
+                <!-- Legend Table with Pagination -->
+                <div style="margin-left: 60px; width: 280px;">
+                    <!-- Legend Items Paginated -->
+                    <div id="legendPages">
+                        @{
+                            int pageSize = 10;
+                            int totalItems = ViewBag.DoughnutChartData.Count;
+                            int pageCount = (int)Math.Ceiling((double)totalItems / pageSize);
+
+                            for (int page = 0; page < pageCount; page++)
+                            {
+                                bool isFirst = page == 0;
+                                <div class="legend-page" style="display:@(isFirst ? "block" : "none");">
+                                    <table style="border-collapse: collapse; width: 100%;">
+                                        <tbody>
+                                            @for (int i = page * pageSize; i < Math.Min((page + 1) * pageSize, totalItems); i++)
+                                            {
+                                                var item = ViewBag.DoughnutChartData[i];
+                                                var color = paletteColors[i % paletteColors.Length];
+                                                <tr>
+                                                    <td style="padding-top: 6px; padding-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                                                        <span style="width: 12px; height: 12px; background-color: @color; display: inline-block; margin-right: 8px; border-radius: 50%;"></span>
+                                                        <span style="font-size: 18px;">@Html.Raw(item.categoryIcon)</span>
+                                                    </td>
+                                                    <td style="font-size: 18px; text-align: left; padding-left: 12px; white-space: nowrap;">@item.categoryTitle</td>
+                                                    <td style="font-size: 18px; text-align: right; padding-left: 40px;">@item.formatedAmount</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    <!-- Navigation Arrows at Bottom -->
+                    <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                        <button onclick="showPrev()" style="font-size: 24px; border: none; background: none;">&#8249;</button>
+                        <button onclick="showNext()" style="font-size: 24px; border: none; background: none;">&#8250;</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Pagination -->
+<script>
+    let currentPage = 0;
+
+    function showPage(index) {
+        const pages = document.querySelectorAll('.legend-page');
+        if (index < 0 || index >= pages.length) return;
+
+        pages.forEach((page, i) => {
+            page.style.display = i === index ? 'block' : 'none';
+        });
+
+        currentPage = index;
+    }
+
+    function showNext() {
+        showPage(currentPage + 1);
+    }
+
+    function showPrev() {
+        showPage(currentPage - 1);
+    }
+</script>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="widget chart">
+            <div class="p-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Income vs Expense</h5>
+                <span class="text-black fw-semibold">@ViewBag.CurrentMonthName</span>
+            </div>
+            <ejs-chart id="spline-chart"
+                       palettes=@(new string[]{"#FEC200","#CA765A"})>
+                <e-chart-primaryxaxis valueType="Category">
+                    <e-majorgridlines width="0"></e-majorgridlines>
+                    <e-majorticklines width="0"></e-majorticklines>
+                </e-chart-primaryxaxis>
+                <e-chart-primaryyaxis>
+                    <e-majorgridlines width="1" color="#32414d" dashArray="3,5"></e-majorgridlines>
+                    <e-majorticklines width="0"></e-majorticklines>
+                    <e-linestyle width="0"></e-linestyle>
+                </e-chart-primaryyaxis>
+                <e-chart-chartarea>
+                    <e-chartarea-border width="0"></e-chartarea-border>
+                </e-chart-chartarea>
+                <e-series-collection>
+                    <e-series dataSource="@ViewBag.SplineChartData" xName="day" width="3"
+                              yName="income" name="Income" type="@Syncfusion.EJ2.Charts.ChartSeriesType.Spline"></e-series>
+                    <e-series dataSource="@ViewBag.SplineChartData" xName="day" width="3"
+                              yName="expense" name="Expense" type="@Syncfusion.EJ2.Charts.ChartSeriesType.Spline"></e-series>
+                </e-series-collection>
+                <e-chart-legendsettings position="Top" alignment="Far" toggleVisibility="false">
+                    <e-legendsettings-textstyle color="#000" size="1rem"></e-legendsettings-textstyle>
+                </e-chart-legendsettings>
+                <e-chart-tooltipsettings enable shared ></e-chart-tooltipsettings>
+            </ejs-chart>
+        </div>
+    </div>
+</div>
+
+
+
+@* Recent Transcations*@
+<div class="row">
+    <div class="col-md-6">
+        <div class="widget">
+            <div class="p-4">
+                <h5 class="fw-bold">Recent Transactions</h5>
+            </div>
+            <div class="px-4 pb-4">
+                <ejs-grid id="recent-transactions"
+                    dataSource="@ViewBag.RecentTransactions" gridLines="None">
+                        <e-grid-columns>
+                        <e-grid-column headerText="Category" field="CategoryTitleWithIcon"></e-grid-column>
+                        <e-grid-column headerText="Date" field="Date" type="date" format="MMM-dd-yy"></e-grid-column>
+                        <e-grid-column headerText="Amount" field="FormattedAmount" textAlign="Right"></e-grid-column>
+                        </e-grid-columns>
+                </ejs-grid>
+            </div>
+        </div>
+    </div>
+</div>
+
+

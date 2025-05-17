@@ -1,0 +1,59 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Expense_Tracker.Areas.Identity.Data
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+
+@{
+    List<Object> menuItems = new List<Object>();
+
+    menuItems.Add(new
+    {
+        text = "Dashboard",
+        url = "/Dashboard",
+        iconCss = "fa-solid fa-box",
+    });
+    menuItems.Add(new
+    {
+        text = "Categories",
+        url = "/Category",
+        iconCss="fa-solid fa-folder-closed",
+    });
+    menuItems.Add(new
+    {
+        text = "Transactions",
+        iconCss = "fa-solid fa-arrow-right-arrow-left",
+        url = "/Transaction"
+    });
+}
+
+<ejs-sidebar id="sidebar" width="230px">
+    <e-content-template>
+
+        <div class="logo-wrapper">
+            <div class="app-logo">
+                <img src="~/logo.png" />
+            </div>
+        </div>
+
+        <div class="profile-wrapper"> 
+            <img class="profile-pic" src="~/profile.png" /> 
+            <div class="titles d-flex flex-column ps-3"> 
+                 <h6 class="mb-0">My Coin</h6> 
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    var user = await UserManager.GetUserAsync(User);
+                    if (user != null)
+                    {
+                        <span class="text-muted">@user.FirstName @user.LastName</span>
+                    }
+                }
+                else
+                {
+                    <span class="text-muted">Guest</span>
+                }
+            </div>
+        </div>
+
+        <ejs-menu id="menu" items="menuItems" orientation="Vertical"></ejs-menu>
+    </e-content-template>
+</ejs-sidebar>
